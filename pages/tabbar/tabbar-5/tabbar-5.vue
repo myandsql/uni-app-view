@@ -1,8 +1,9 @@
 <template>
-	<view >
-			<u-button> 1</u-button>
+	<view class="content">
+		<u-avatar :src="headSrc"  randomBgColor ></u-avatar>
+		<view width="auto" lineHeight="auto">{{name}}</view>
 	</view>
-
+		
 </template>
 
 <script>
@@ -10,7 +11,8 @@
 		data() {
 			return {
 				title: 'Hello',
-				src:'static/img/boy.png'
+				headSrc:'/static/img/boy.png',
+				name:"测试员",
 			}
 		},
 		onLoad() {
@@ -24,8 +26,10 @@
 
 <style>
 	.content {
-		text-align: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		height: 400upx;
-		margin-top: 200upx;
+		margin-top: 80upx;
 	}
 </style>
