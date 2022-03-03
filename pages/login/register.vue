@@ -12,7 +12,7 @@
 				<wInput v-model="passData" type="password"  placeholder="密码" isShowPass></wInput>
 				<view class="main_box">
 				<wInput v-model="verCode" type="number"  placeholder="验证码" class="main_box_code"></wInput>
-				<w-button  text="发送验证码" class="main_box_button" ></w-button>
+				<w-button  text="发送验证码" class="main_box_button" @click="" ></w-button>
 				</view>
 
 			</view>
@@ -43,6 +43,7 @@
 				passData: '', //密码
 				verCode: "", //验证码
 				emailFormat: false,
+				verifyShow : true,
 				showAgree: true, //协议是否选择
 				isRotate: false, //是否加载旋转
 			}
@@ -79,21 +80,7 @@
 					return;
 				}
 				console.log("获取验证码")
-				this.$refs.runCode.$emit('runCode'); //触发倒计时（一般用于请求成功验证码后调用）
-				uni.showToast({
-					icon: 'none',
-					position: 'bottom',
-					title: '模拟倒计时触发'
-				});
-
-				setTimeout(function() {
-					_this.$refs.runCode.$emit('runCode', 0); //假装模拟下需要 终止倒计时
-					uni.showToast({
-						icon: 'none',
-						position: 'bottom',
-						title: '模拟倒计时终止'
-					});
-				}, 3000)
+				
 			},
 			startReg() {
 				//注册
