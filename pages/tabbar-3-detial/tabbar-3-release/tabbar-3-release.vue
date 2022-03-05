@@ -48,7 +48,7 @@
 	export default {
 		data() {
 			return {
-				BoldfaceSrc: "/static/img/richEdit/加粗.png",
+				BoldfaceSrc: "/static/img/richEdit/Bold.png",
 				ItalicSrc: "/static/img/richEdit/斜体.png",
 				UnderlineSrc: "/static/img/richEdit/下划线.png",
 				HeaderSrc: "/static/img/richEdit/标题.png",
@@ -216,10 +216,10 @@
 			setBold() {
 				this.showBold = !this.showBold;
 				this.editorCtx.format('bold');
-				if (this.BoldfaceSrc == "/static/img/richEdit/加粗.png") {
-					this.BoldfaceSrc = "/static/img/richEdit/已加粗.png"
+				if (this.BoldfaceSrc == "/static/img/richEdit/Bold.png") {
+					this.BoldfaceSrc = "/static/img/richEdit/isBold.png"
 				} else {
-					this.BoldfaceSrc = "/static/img/richEdit/加粗.png"
+					this.BoldfaceSrc = "/static/img/richEdit/Bold.png"
 				}
 			},
 			// 富文本框内容斜体展示
@@ -347,7 +347,7 @@
 		line-height: 160%;
 		font-size: 34upx;
 		width: 100%;
-		height: calc(100vh - 450upx);
+		 height: calc(100vh - 620rpx); 
 		overflow-y: auto;
 		margin: 20upx auto;
 		// position: relative;

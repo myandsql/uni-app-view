@@ -78,8 +78,7 @@
 				// 	// error
 				// }
 			},
-			startLogin(e) {
-				console.log(e)
+			async startLogin(e) {
 				//登录
 				// console.log(this.passData, this.passData.length)
 				if (this.isRotate) {
@@ -119,11 +118,17 @@
 				});
 				setTimeout(function() {
 					_this.isRotate = false
-					uni.hideLoading()
-				}, 6000);
-				APIS.accountLogin(this.emailData ,this.passData)
-			
-
+				}, 3000)
+				const res = await APIS.accountLogin({email:this.emailData,password:this.passData})
+				uni.setStorageSync('token', res.token);
+				
+				await getApp().$options.getUserInfo();
+				_this.isRotate = false
+				uni.hideLoading()
+				uni.switchTab({
+					url: "../tabbar/tabbar-5/tabbar-5"
+				});
+		
 			},
 			checkEmail() {
 				console.log("checkEmail")

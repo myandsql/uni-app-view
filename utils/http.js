@@ -1,60 +1,106 @@
-let debug = true;
+let debug = false;
 const urlDebug = 'http://localhost:8000'
-const urlRelease = '' // 这里写正式域名地址
+const urlRelease = 'http://39.108.237.129' // 这里写正式域名地址
 
 function getBaseUrl() {
 	return debug ? urlDebug : urlRelease
 }
 export default {
 	// 账号登录
-	accountLogin(email, password) {
-		console.log(email, password)
-		let loginUrl = getBaseUrl() + '/Login'
-		console.log(loginUrl)
-		uni.request({
-			header: {
-				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-			},
-			url: loginUrl,
-			method: 'POST',
-			data: {
-				"email": email,
-				"password": password,
-			},
-			success: (res) => {
-				console.log(res.data)
-				if (res.data.code == 1) {
-					uni.setStorage({
-						key: 'token',
-						data: res.data.token
-					});
-					console.log("登录成功")
-					uni.switchTab({
-						
-						url: "../tabbar/tabbar-5/tabbar-5"
-					});
-				} else {
-					uni.hideLoading()
-					uni.showToast({
-						icon: 'none',
-						position: 'bottom',
-						title: res.data.msg
-					});
+	accountLogin(data) {
+		let url = getBaseUrl() + '/Login'
+		return new Promise((resolve, reject) => {
+			let contentType = 'application/x-www-form-urlencoded; charset=UTF-8'
+			uni.request({
+				url: url,
+				data: data,
+				method: 'POST',
+				header: {
+					'content-type': contentType,
+					// 'token': token
+				},
+				success: res => {
+					//返回什么就相应的做调整
+					if (res.data.code === 1) {
+						resolve(res.data)
+					} else {
+						uni.showToast({
+							icon: 'none',
+							position: 'bottom',
+							title: res.data.msg || res.data.message
+						});
+						// reject(res)
+					}
+				},
+				error: e => {
+					reject('网络出错')
 				}
-			}
-		});
-
-		// return request.post(url, data)
+			})
+		})
 	},
 	// 短信发送验证码
 	sendSMS(data) {
 		let url = getBaseUrl() + '/RegistrationPhaseOne';
-		// return request.post(url, data)
+		return new Promise((resolve, reject) => {
+			let contentType = 'application/x-www-form-urlencoded; charset=UTF-8'
+			uni.request({
+				url: url,
+				data: data,
+				method: 'POST',
+				header: {
+					'content-type': contentType,
+					// 'token': token
+				},
+				success: res => {
+					//返回什么就相应的做调整
+					if (res.data.code === 1) {
+						resolve(res.data)
+					} else {
+						uni.showToast({
+							icon: 'none',
+							position: 'bottom',
+							title: res.data.msg || res.data.message
+						});
+						// reject(res)
+					}
+				},
+				error: e => {
+					reject('网络出错')
+				}
+			})
+		})
 	},
 	// 注册
 	register(data) {
-		let url = '/RegistrationPhaseTwo';
-		// return request.post(url, data)
+		let url = getBaseUrl() + '/RegistrationPhaseTwo';
+		return new Promise((resolve, reject) => {
+			let contentType = 'application/x-www-form-urlencoded; charset=UTF-8'
+			uni.request({
+				url: url,
+				data: data,
+				method: 'POST',
+				header: {
+					'content-type': contentType,
+					// 'token': token
+				},
+				success: res => {
+					//返回什么就相应的做调整
+					if (res.data.code === 1) {
+						resolve(res.data)
+					} else {
+						uni.showToast({
+							icon: 'none',
+							position: 'bottom',
+							title: res.data.msg || res.data.message
+						});
+						// reject(res)
+					}
+				},
+				error: e => {
+					reject('网络出错')
+				}
+			})
+		})
 	},
 	// 忘记密码(发送验证码)
 	forgetPassword(email) {
@@ -105,11 +151,51 @@ export default {
 					uni.navigateTo({
 						url: "./login"
 					});
-					
-					
+
+
 				}
 			}
 		});
 		// return request.post(url, data)
-	}
+	},
+
+	// 获取用户资料
+	getUserInfo(data = {}) {
+		let url = getBaseUrl() + '/access/GetUserInfo';
+		return new Promise((resolve, reject) => {
+			let contentType = 'application/x-www-form-urlencoded; charset=UTF-8';
+			const authorization = uni.getStorageSync('token');
+			uni.request({
+				url: url,
+				data: data,
+				method: 'GET',
+				header: {
+					'content-type': contentType,
+					'Authorization': authorization
+				},
+				success: res => {
+					//返回什么就相应的做调整
+					if (res.data.code === 1) {
+						resolve(res.data)
+					} else {
+						uni.showToast({
+							icon: 'none',
+							position: 'bottom',
+							title: res.data.msg || res.data.message
+						});
+						// reject(res)
+					}
+				},
+				error: e => {
+					reject('网络出错')
+				}
+			})
+		})
+	},
+	// 上传图片
+	
+	
+
+
+
 }
