@@ -13,9 +13,9 @@ export default {
 			uni.request({
 				url: getBaseUrl() + options.url,
 				method: options.method || "GET",
-				data: options.data || {},
+				data: options.data || {}, 
 				header: {
-					'content-type': ptions.contentType || contentType,
+					'content-type': options.contentType || contentType,
 					'Authorization': authorization
 				},
 				success: (res) => {
@@ -50,15 +50,15 @@ export default {
 					'Authorization': authorization
 				},
 				success: (res) => {
-					console.log(res.data)
-					if (res.data.code == 0) {
+					let data = JSON.parse(res.data)
+					if (data.code == 0) {
 						return uni.showToast({
 							icon: 'none',
 							position: 'bottom',
 							title: res.data.msg || res.data.message
 						})
 					}
-					resolve(res.data)
+					resolve(data)
 				},
 				fail: (err) => {
 					uni.showToast({

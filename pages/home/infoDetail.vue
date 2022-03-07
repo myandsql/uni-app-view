@@ -38,7 +38,7 @@
 					sourceType: 'album'
 				}],
 				columns: ['男', '女']
-			
+
 			}
 		},
 		created() {
@@ -82,25 +82,20 @@
 			//上传文件
 			async uploadMultiPics(value) {
 				const res = await api.uploadFile({
-					url:'/access/UploadImage',
-					tempFilePath : value,
+					url: '/access/ChangeAvatars',
+					tempFilePath: value,
 				})
-				console.log(res)
-				console.log(res.code)
-				console.log("run this 1")
-				if (res.code == 1){
-					console.log("run this 2")
-					this.userInfo.avatars= res.data.imageUrl
+
+				if (res.code == 1) {
+					this.userInfo.avatars = res.data.imageUrl
 					console.log(res.data.imageUrl)
-					getApp().globalData.userInfo.avatars= res.data.imageUrl
+					getApp().globalData.userInfo.avatars = res.data.imageUrl
 					uni.showToast({
 						icon: 'none',
 						position: 'bottom',
 						title: "保存成功"
 					})
 				}
-					
-			
 			},
 			goChangeName() {
 				uni.navigateTo({
@@ -108,6 +103,7 @@
 				})
 			},
 			async bindSexChange(e) {
+				console.log(e)
 				if (this.userInfo.gender != this.columns[e.target.value]) {
 					const res = await api.request({
 						method: 'POST',
@@ -115,9 +111,9 @@
 						data: {
 							gender: this.columns[e.target.value]
 						},
-						}
-					)
-					if (res.code == 1){
+					})
+					console.log(res)
+					if (res.code == 1) {
 						this.userInfo.gender = this.columns[e.target.value]
 						getApp().globalData.userInfo.gender = this.columns[e.target.value]
 						uni.showToast({
@@ -127,7 +123,7 @@
 						})
 					}
 				}
-				
+
 
 			},
 

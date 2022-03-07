@@ -1,20 +1,20 @@
 <template>
 	<view>
-		<u-navbar title="编辑文章" @leftClick="leftClick" rightText="提交">
+		<u-navbar title="编辑文章" @leftClick="leftClick" rightText="提交" @rightClick="showSetting">
 		</u-navbar>
 		<view class="content">
 		</view>
 		<view class="box_view">
 			<view class="text_view">
-				<textarea v-model="detail.title" placeholder="添加标题" auto-height placeholder-class="grey"
-					class="text_view" />
+				<textarea v-model="title" placeholder="添加标题" auto-height placeholder-class="grey" class="text_view" />
 				<picker @change="bindPickerChange" :value="index" :range="selectArray">
 					<view class="uni-input">{{selectArray[index]}}</view>
 				</picker>
 			</view>
-			<view class="image_view">
-				<u-icon name="/static/img/拍照.png" class="image_view_icon" size="120rpx" label="封面" labelPos="bottom"
-					@click="uploadImg"></u-icon>
+			<view class="image_view" @click="onShowSheet">
+				<image v-if="showCover" :src="coverUrl" mode="aspectFit"></image>
+				<u-icon v-else name="/static/img/拍照.png" class="image_view_icon" size="120rpx" label="封面"
+					labelPos="bottom"></u-icon>
 			</view>
 		</view>
 
@@ -23,12 +23,12 @@
 			@blur="editBlur" ref="editot"></editor>
 		<view class="tool-view">
 			<view class="tool">
-				<u-icon size="40rpx" name="/static/img/richEdit/图片.png"></u-icon>
+				<u-icon size="40rpx" name="/static/img/richEdit/图片.png" @click="ChooseImageInsert"></u-icon>
 				<u-icon size="40rpx" name="/static/img/richEdit/字体.png" @click="showMore"></u-icon>
-				<u-icon size="40rpx" name="/static/img/richEdit/横线.png" @click="insertDivider" ></u-icon>
+				<u-icon size="40rpx" name="/static/img/richEdit/横线.png" @click="insertDivider"></u-icon>
 				<u-icon size="40rpx" name="/static/img/richEdit/撤回.png" @click="undo"></u-icon>
 				<u-icon size="40rpx" name="/static/img/richEdit/反撤回.png" @click="redo"></u-icon>
-				<u-icon size="40rpx" label="提交"></u-icon>
+				<u-icon size="40rpx" label="提交" @click="showSetting"></u-icon>
 
 			</view>
 			<view class="font-more" v-if="showMoreTool">
@@ -45,6 +45,7 @@
 </template>
 
 <script>
+	import api from "utils/apis.js"
 	export default {
 		data() {
 			return {
@@ -54,6 +55,8 @@
 				HeaderSrc: "/static/img/richEdit/标题.png",
 				CentetSrc: "/static/img/richEdit/居中对齐.png",
 				RightSrc: "/static/img/richEdit/右对齐.png",
+				coverUrl: '',
+				showCover: false,
 				showMoreTool: false,
 				showBold: false,
 				showItalic: false,
@@ -65,13 +68,19 @@
 				activeColor: '#F56C6C',
 				screenHeight: "",
 				keyboardFlag: false,
-
+				title: '',
 				placeholder: '开始输入...',
-				detail: {
-					title: ""
-				},
 				selectArray: ['科普文', '分享文', '求助文'],
 				index: 0,
+				changeAvatarOptions: [{
+					name: '拍照',
+					method: 'onChooseImage',
+					sourceType: 'camera'
+				}, {
+					name: '从相册选择',
+					method: 'onChooseImage',
+					sourceType: 'album'
+				}],
 			}
 		},
 		onLoad() {
@@ -87,12 +96,24 @@
 						context: true
 					}, res => {
 						this.editorCtx = res.context;
-						this.editorCtx.setContents({
-							html: this.detail.essay
-						})
+						// this.editorCtx.setContents({
+						// 	// html: this.detail.essay
+						// })
 					})
 					.exec();
 
+			},
+			async onShowSheet(e) {
+				uni.showActionSheet({
+					itemList: ['拍照', '从相册选择'],
+					success: res => {
+						this[this.changeAvatarOptions[res.tapIndex].method](this.changeAvatarOptions[res
+							.tapIndex].sourceType)
+					},
+					fail: err => {
+						console.log(err.errMsg);
+					}
+				})
 			},
 			undo() {
 				this.editorCtx.undo()
@@ -130,84 +151,67 @@
 			editBlur() {
 				this.keyboardFlag = false;
 			},
-			async chooseImage(type) {
-					let _this = this;
-					console.log(_this.editorCtx);
-					uni.chooseImage({
-						count: 1, //最多可以选择的图片张数，默认9
-						sizeType: ['original', 'compressed'], //original 原图，compressed 压缩图，默认二者都有
-						sourceType: ['album', 'camera'], //album 从相册选图，camera 使用相机，默认二者都有
-						success: (respone) => {
-							_this.$request.urlRequest(
-								'/gate/oss/token', {},
-								'GET',
-								(res) => {
-									if (res.code == 200) {
-									let data = res.result;
-									let env = {
-										uploadImageUrl: 'https://58d.oss-cn-hangzhou.aliyuncs.com/', // 默认存在根目录，可根据需求改
-										AccessKeySecret: data.AccessKeySecret, // AccessKeySecret 去你的阿里云上控制台上找
-										OSSAccessKeyId: data.AccessKeyId, // AccessKeyId 去你的阿里云上控制台上找
-										stsToken: data.SecurityToken,
-										timeout: 87600 //这个是上传文件时Policy的失效时间
-									}
-									let dir = 'images/';
-									let filePath = respone.tempFilePaths[0];
-									const aliyunFileKey = dir + new Date().getTime() + Math.floor(Math.random() * 150) + '.png';
-									const aliyunServerURL = env.uploadImageUrl; //OSS地址，需要https
-									const accessid = env.OSSAccessKeyId;
-									const policyBase64 = _this.getPolicyBase64(env);
-									const signature = _this.getSignature(policyBase64, env); //获取签名
-									const stsToken = env.stsToken;
-			
-									let param = {
-										'key': aliyunFileKey,
-										'policy': policyBase64,
-										'OSSAccessKeyId': accessid,
-										'signature': signature,
-										'success_action_status': '200',
-										'x-oss-security-token': stsToken,
-										'stsToken': stsToken,
-									};
-			
-									uni.uploadFile({
-										filePath: filePath, //要上传文件资源的路径
-										name: 'file', //必须填file
-										formData: param,
-										success: (res) => {
-											if(type){
-												_this.detail.imageUrl = aliyunServerURL + aliyunFileKey;
-												return;
-											}
-											_this.editorCtx.insertImage({
-												src: aliyunServerURL + aliyunFileKey, // 此处需要将图片地址切换成服务器返回的真实图片地址
-												alt: '图片',
-												width:"320upx",
-												mode:'widthFix',
-												success: function(e) {}
-											});
-										},
-										fail: (err) => {
-											// _this.msg.push(JSON.stringify(err));
-											// err.wxaddinfo = aliyunServerURL;
-											// failc(err);
-										},
-									})
-								}
-							}
-						)
+
+			async onChooseImage(sourceType) {
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['original', 'compressed'],
+					sourceType: [sourceType],
+					success: res => {
+						console.log('tempFilePaths[0]', res.tempFilePaths[0]);
+						this.uploadMultiPics(res.tempFilePaths[0])
 					}
 				});
 			},
-			uploadImg() {
-				let that = this
+			async ChooseImageInsert() {
 				uni.chooseImage({
-					success(res) {
-						console.log(res.tempFilePaths)
-						that.imgArr = res.tempFilePaths;
-						console.log(that.imgArr)
+					success: res => {
+						// console.log(res.tempFilePaths)
+						for (let j = 0, len = res.tempFilePaths.length; j < len; j++) {
+							//console.log(res.tempFilePaths[j])
+							this.uploadImage(res.tempFilePaths[j])
+						}
+
+
 					}
+				});
+			},
+			async uploadImage(value) {
+				//console.log(value)
+				const res = await api.uploadFile({
+					url: '/access/UploadImage',
+					tempFilePath: value,
 				})
+				if (res.code == 1) {
+					this.editorCtx.insertImage({
+						src: res.data.imageUrl, // 此处需要将图片地址切换成服务器返回的真实图片地址
+						alt: '图片',
+						success: function(e) {
+							console.log("插入图片成功")
+						}
+					});
+
+				}
+			},
+
+			//上传文件
+			async uploadMultiPics(value) {
+				const res = await api.uploadFile({
+					url: '/access/UploadImage',
+					tempFilePath: value,
+				})
+
+				if (res.code == 1) {
+					this.coverUrl = res.data.imageUrl
+					console.log(res.data.imageUrl)
+					this.showCover = true
+					uni.showToast({
+						icon: 'none',
+						position: 'bottom',
+						title: "上传成功"
+					})
+
+				}
 			},
 			showMore() {
 				this.showMoreTool = !this.showMoreTool;
@@ -257,7 +261,7 @@
 					this[obj] = false;
 				}
 			},
-			leftClick(){
+			leftClick() {
 				console.log("leftClick")
 				uni.navigateBack()
 			},
@@ -265,10 +269,10 @@
 			setCenter() {
 				this.showCenter = !this.showCenter;
 				this.editorCtx.format('align', this.showCenter ? 'center' : false);
-				
+
 				if (this.CentetSrc == "/static/img/richEdit/居中对齐.png") {
 					this.CentetSrc = "/static/img/richEdit/已居中对齐.png"
-					this.RightSrc  = "/static/img/richEdit/右对齐.png"
+					this.RightSrc = "/static/img/richEdit/右对齐.png"
 				} else {
 					this.CentetSrc = "/static/img/richEdit/居中对齐.png"
 				}
@@ -278,10 +282,10 @@
 				this.showRight = !this.showRight;
 				this.editorCtx.format('align', this.showRight ? 'right' : false);
 				if (this.RightSrc == "/static/img/richEdit/右对齐.png") {
-					this.RightSrc  = "/static/img/richEdit/已右对齐.png"
+					this.RightSrc = "/static/img/richEdit/已右对齐.png"
 					this.CentetSrc = "/static/img/richEdit/居中对齐.png"
 				} else {
-					this.RightSrc  = "/static/img/richEdit/右对齐.png"
+					this.RightSrc = "/static/img/richEdit/右对齐.png"
 				}
 			},
 			insertDivider() {
@@ -289,13 +293,60 @@
 			},
 			redo() {
 				this.editorCtx.redo();
+			}, // 提交信息
+			async showSetting() {
+				if (!this.title || !this.coverUrl) {
+					uni.showToast({
+						title: "请补全信息",
+						icon: "none"
+					})
+					return;
+				}
+				this.editorCtx.getContents({
+					success: (data) => {
+						this.myContent = JSON.stringify(data);
+					}
+				})
+
+				uni.showModal({
+					title: '确定提交吗？',
+					confirmText: "确定提交",
+					confirmColor: "#FF7424",
+					success: res => {
+						if (res.confirm) {
+							console.log("yes")
+							this.uploadArticles({
+								title: this.title,
+								type: this.index,
+								cover: this.coverUrl,
+								content: this.myContent
+							})
+						} else {
+							console.log("no")
+						}
+					},
+
+				});
 			},
-			
-			
-
-
-
-
+			async uploadArticles(value) {
+				console.log(value)
+				const res = await api.request({
+					method: 'POST',
+					url: '/access/UploadArticles',
+					data: value,
+				})
+				if (res.code == 1) {
+					console.log("yes")
+					uni.showToast({
+						icon: 'none',
+						position: 'bottom',
+						title: "提交成功"
+					})
+					uni.switchTab({
+						url: '../../tabbar/tabbar-1/tabbar-1'
+					});
+				}
+			},
 
 
 		}
@@ -320,7 +371,7 @@
 	}
 
 	.box_view {
-		
+
 		display: flex;
 		flex-direction: row;
 		margin-top: 80rpx;
@@ -335,19 +386,20 @@
 		background-color: #DADBDE;
 		align-items: center
 	}
-	.image_view_icon{
-		display: flex; 
+
+	.image_view_icon {
+		display: flex;
 		margin-top: 80rpx;
 
 	}
-	
+
 
 
 	.ql-container {
 		line-height: 160%;
 		font-size: 34upx;
 		width: 100%;
-		 height: calc(100vh - 620rpx); 
+		height: calc(100vh - 620rpx);
 		overflow-y: auto;
 		margin: 20upx auto;
 		// position: relative;

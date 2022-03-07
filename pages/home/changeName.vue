@@ -5,6 +5,7 @@
 			<u-input border="bottom" placeholder="请输入新昵称" v-model="newName" clearable></u-input>
 			<!-- <view>"请输入新昵称</view> -->
 		</view>
+		<view class="tips">来展示下你的个性昵称吧</view>
 	</view>
 </template>
 
@@ -34,7 +35,7 @@
 						},
 					})
 					if (res.code == 1) {
-					getApp().globalData.userInfo.username = this.newName
+						getApp().globalData.userInfo.username = this.newName
 						uni.showToast({
 							icon: 'none',
 							position: 'bottom',
@@ -56,7 +57,15 @@
 <style>
 	.content {
 		display: flex;
-		margin-top: 80rpx;
+		margin: 80rpx auto 0 auto;
 		flex-direction: column;
+		width: 710rpx;
+		height: 80rpx;
+		border-bottom: 1rpx solid #E5E5E5;
+	}
+	.tips{
+		margin: 20rpx 20rpx 0 20rpx;
+		color: #8E8E8E;
+		margin-left: 20rpx;
 	}
 </style>

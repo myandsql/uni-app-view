@@ -111,6 +111,11 @@
 				uni.navigateTo({
 					url: "/pages/login/login"
 				});
+			},
+			navToCollection(){
+				uni.navigateTo({
+					url: "../../home/follow"
+				});
 			}
 		}
 	}

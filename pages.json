@@ -78,6 +78,15 @@
             }
             
         }
+        ,{
+            "path" : "pages/home/follow",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
     ],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
